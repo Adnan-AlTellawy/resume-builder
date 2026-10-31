@@ -1,13 +1,12 @@
 import { GraduationCap, Plus, Trash2 } from "lucide-react";
-import React from "react";
-
 const EducationForm = ({ data, onChange }) => {
   const addEducation = () => {
     const newEducation = {
       institution: "",
       degree: "",
-      start_data: "",
-      gradution_data: "",
+      field: "",
+      start_date: "",
+      graduation_date: "", // مطابقة القالب
       gpa: "",
     };
     onChange([...data, newEducation]);
@@ -17,11 +16,13 @@ const EducationForm = ({ data, onChange }) => {
     const updated = data.filter((_, i) => i !== index);
     onChange(updated);
   };
+
   const updateEducation = (index, field, value) => {
     const updated = [...data];
     updated[index] = { ...updated[index], [field]: value };
     onChange(updated);
   };
+
   return (
     <div className="space-y-6">
       <div>
@@ -71,37 +72,37 @@ const EducationForm = ({ data, onChange }) => {
                   onChange={(e) =>
                     updateEducation(index, "institution", e.target.value)
                   }
-                  className="px-3 py-2 text-sm"
+                  className="px-3 py-2 text-sm border border-gray-300 rounded-md"
                   placeholder="Institution Name"
                   type="text"
-                ></input>
+                />
 
                 <input
                   value={education.degree || ""}
                   onChange={(e) =>
                     updateEducation(index, "degree", e.target.value)
                   }
-                  className="px-3 py-2 text-sm"
-                  placeholder="Degree (e.g.,Bachelor's,Master's)"
+                  className="px-3 py-2 text-sm border border-gray-300 rounded-md"
+                  placeholder="Degree (e.g., Bachelor's, Master's)"
                   type="text"
-                ></input>
+                />
 
                 <input
                   value={education.field || ""}
                   onChange={(e) =>
                     updateEducation(index, "field", e.target.value)
                   }
-                  className="px-3 py-2 text-sm"
+                  className="px-3 py-2 text-sm border border-gray-300 rounded-md"
                   type="text"
                   placeholder="Field of Study"
-                ></input>
+                />
 
                 <input
-                  value={education.graduation_data || ""}
+                  value={education.graduation_date || ""}
                   onChange={(e) =>
-                    updateEducation(index, "graduation_data", e.target.value)
+                    updateEducation(index, "graduation_date", e.target.value)
                   }
-                  className="px-3 py-2 text-sm"
+                  className="px-3 py-2 text-sm border border-gray-300 rounded-md"
                   type="month"
                 />
               </div>
@@ -109,10 +110,10 @@ const EducationForm = ({ data, onChange }) => {
               <input
                 value={education.gpa || ""}
                 onChange={(e) => updateEducation(index, "gpa", e.target.value)}
-                className="px-3 py-2 text-sm"
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md"
                 type="text"
                 placeholder="GPA (optional)"
-              ></input>
+              />
             </div>
           ))}
         </div>

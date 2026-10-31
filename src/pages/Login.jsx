@@ -1,11 +1,12 @@
+
 import { Lock, Mail, User2Icon } from "lucide-react";
-import React from "react";
-import { useNavigate } from "react-router-dom"; 
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { setToken } from "../utils/token";
 
 const Login = () => {
   const navigate = useNavigate();
   
-
   const query = new URLSearchParams(window.location.search);
   const urlState = query.get("state");
   const [state, setState] = React.useState(urlState || "login");
@@ -16,21 +17,30 @@ const Login = () => {
     password: "",
   });
 
- 
+  const [error, setError] = useState("");
+
   const handleSubmit = (e) => {
-    e.preventDefault(); 
+    e.preventDefault();
+    setError("");
 
-   
-    localStorage.setItem("user", JSON.stringify({
-      name: formData.name,
+    const mockToken = "mock_dummy_token_123456";
+    const mockUser = {
+      name: formData.name || "مستخدم جديد",
       email: formData.email,
-      isLoggedIn: true
-    }));
+    };
 
-    console.log(" Save In LocalStorage!");
+    setToken(mockToken);
+    localStorage.setItem(
+      "user",
+      JSON.stringify({
+        name: mockUser.name,
+        email: mockUser.email,
+        token: mockToken,
+        isLoggedIn: true,
+      })
+    );
 
-  
-    navigate("/"); 
+    navigate("/");
   };
 
   const handleChange = (e) => {
@@ -49,6 +59,10 @@ const Login = () => {
         </h1>
 
         <p className="text-gray-400 text-sm mt-2">Please {state} to continue</p>
+
+        {error && (
+          <p className="text-red-500 text-sm mt-3 text-left">{error}</p>
+        )}
 
         {state !== "login" && (
           <div className="flex items-center mt-6 w-full bg-white border border-gray-400 h-12 rounded-full overflow-hidden pl-6 gap-2 ">
@@ -93,7 +107,6 @@ const Login = () => {
             required
           />
         </div>
-
         <div className="mt-4 text-left">
           <button type="button" className="text-sm text-green-400 hover:underline">
             Forget password?
@@ -106,8 +119,7 @@ const Login = () => {
         >
           {state === "login" ? "Login" : "Sign up"}
         </button>
-
-        <p
+<p
           onClick={() =>
             setState((prev) => (prev === "login" ? "Sign up" : "login"))
           }

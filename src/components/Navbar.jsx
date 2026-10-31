@@ -1,10 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { getUser, removeToken } from "../utils/token";
 
 function Navbar() {
-  const user = { name: "john doe" };
+  const [user, setUser] = useState(() => getUser());
   const navigate = useNavigate();
+
   const logoutUser = () => {
+    removeToken();
+    setUser(null);
     navigate("/");
   };
   return (
@@ -14,7 +18,11 @@ function Navbar() {
           <img src="./logo.svg" className="h-11 w-auto"></img>
         </Link>
         <div className="flex items-center gap-4 text-md">
-          
+          {user && user.name && (
+            <span className="text-sm font-medium text-slate-700">
+              {user.name}
+            </span>
+          )}
           <button
             onClick={logoutUser}
             className="bg-white hover:bg-slate-50 border border-gray-300 px-7 py-1.5 rounded-full active:scale-95 "

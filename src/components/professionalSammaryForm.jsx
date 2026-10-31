@@ -1,7 +1,25 @@
 import { Sparkles } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
+import { enhanceSummary } from "../utils/ai";
 
-function ProfessionalSammaryForm({ data, onChange, setresumeData }) {
+function ProfessionalSammaryForm({ data, onChange }) {
+  const [loading, setLoading] = useState(false);
+
+  const handleEnhance = async () => {
+    if (!data || loading) return;
+    setLoading(true);
+    try {
+      const result = await enhanceSummary(data);
+      const enhanced = result?.enhancedText || result?.fullResponse || "";
+      if (enhanced) {
+        onChange(enhanced);
+      }
+    } catch (err) {
+      console.error("AI enhancement failed", err);
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -14,11 +32,13 @@ function ProfessionalSammaryForm({ data, onChange, setresumeData }) {
           </p>
         </div>
         <button
+          onClick={handleEnhance}
+          disabled={loading}
           className="flex items-center gap-2 px-3 py-1 text-sm bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors
         disabled:opacity-50"
         >
           <Sparkles className="size-4"></Sparkles>
-          AI Enhance
+          {loading ? "Enhancing..." : "AI Enhance"}
         </button>
       </div>
 

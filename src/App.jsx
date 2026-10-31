@@ -7,6 +7,7 @@ import Dashboard from "./pages/Dashboard";
 import ResumeBuilder from "./pages/ResumeBuilder";
 import Preview from "./pages/Preview";
 import Login from "./pages/Login";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const App = () => {
   return (
@@ -15,7 +16,14 @@ const App = () => {
         <Route path="/" element={<Home />} />
         <Route path="/dashboard" element={<Navigate to="/app" replace />} />
 
-        <Route path="app" element={<Layout />}>
+        <Route
+          path="app"
+          element={
+            <ProtectedRoute>
+              <Layout />
+            </ProtectedRoute>
+          }
+        >
           <Route index element={<Dashboard />} />
           <Route path="builder/:resumeid" element={<ResumeBuilder />} />
         </Route>

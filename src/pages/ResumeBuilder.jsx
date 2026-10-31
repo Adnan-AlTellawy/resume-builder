@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { dummyResumeData } from "../assets/assets";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   ArrowLeftIcon,
   Briefcase,
@@ -22,16 +21,19 @@ import ResumePreview from "../components/ResumePreview";
 import TemplateSelector from "../components/TemplateSelector";
 import ColorPicker from "../components/ColorPicker";
 import ProfessionalSammaryForm from "../components/professionalSammaryForm";
-// eslint-disable-next-line no-unused-vars
-import { resume } from "react-dom/server";
 import ExperienceForm from "../components/ExperienceForm";
-
 import ProjectForm from "../components/ProjectForm";
 import EducationForm from "../components/EducationForm";
 import SkillsForm from "../components/SkillsForm";
+import { apiClient } from "../utils/apiClient";
+import {
+  createResume,
+  updateResume,
+} from "../services/resumes";
 
 const ResumeBuilder = () => {
   const { resumeid } = useParams();
+  const navigate = useNavigate();
   const [resumeData, setresumeData] = useState({
     _id: "",
     title: "",
@@ -45,17 +47,25 @@ const ResumeBuilder = () => {
     accent_color: "#3B82F6",
     public: false,
   });
+  const [isNew, setIsNew] = useState(true);
+  const [saveStatus, setSaveStatus] = useState("");
+  const loadedRef = React.useRef(false);
 
   const loadExistingResume = useCallback(async () => {
-    const resume = dummyResumeData.find(
-      (resume) => String(resume._id) === String(resumeid),
-    );
-
-    if (resume) {
-      setresumeData(resume);
-      document.title = resume.title;
+    if (!resumeid || resumeid === "resume123" || resumeid === "new") {
+      setIsNew(true);
+      return;
     }
-  }, [resumeid, setresumeData]);
+    try {
+      const { data } = await apiClient.get(`/resumes/${resumeid}`);
+      setresumeData(data);
+      setIsNew(false);
+      document.title = data.title || "Resume Builder";
+    } catch {
+      setresumeData((prev) => ({ ...prev, _id: resumeid }));
+      setIsNew(false);
+    }
+  }, [resumeid]);
 
   const [activeSectionIndex, setactiveSectionIndex] = useState(0);
   const [RemoveBackground, setRemoveBackground] = useState(false);
@@ -70,24 +80,66 @@ const ResumeBuilder = () => {
   const activeSection = sections[activeSectionIndex];
 
   useEffect(() => {
-    if (!resumeData) {
-      setTimeout(() => {
-        loadExistingResume();
-      }, 0);
+    if (!loadedRef.current && !resumeData._id && resumeid && resumeid !== "resume123" && resumeid !== "new") {
+      loadedRef.current = true;
+      loadExistingResume();
     }
-  }, [resumeData, loadExistingResume]);
-  const changeResumeVisibility = async ()=>{
-    setresumeData({...resumeData,public : !resumeData.public})
-  }
-  const handleShare = ()=>{
-    const frontendUrl= window.location.href.split('/app/')[0]
-    const resumeUrl = frontendUrl + '/view/' + resumeid
-    if(navigator.share){
-      navigator.share({url : resumeUrl , text : "My Resume" })
-    }else{
-      alert('share not supported on this browser.')
+  }, [resumeData._id, resumeid, loadExistingResume]);
+  const changeResumeVisibility = async () => {
+    const newPublic = !resumeData.public;
+    setSaveStatus("Saving...");
+    try {
+      const formData = new FormData();
+      formData.append("resumeData", JSON.stringify({ public: newPublic }));
+      await updateResume(resumeData._id, formData);
+      setresumeData({ ...resumeData, public: newPublic });
+      setSaveStatus("");
+    } catch (err) {
+      const message = err.response?.data?.message || err.message || "Failed to update";
+      setSaveStatus(message);
     }
-  }
+  };
+
+  const saveResume = async () => {
+    setSaveStatus("Saving...");
+    try {
+      if (isNew) {
+        const payload = { ...resumeData };
+        if (!payload.title || payload.title.trim() === "") {
+          payload.title = "Untitled Resume";
+        }
+        const data = await createResume(payload);
+        setresumeData(data);
+        setIsNew(false);
+        navigate(`/app/builder/${data._id}`, { replace: true });
+      } else {
+        const formData = new FormData();
+        formData.append("resumeData", JSON.stringify(resumeData));
+        if (resumeData.personal_info?.image) {
+          formData.append("image", resumeData.personal_info.image);
+        }
+        if (RemoveBackground) {
+          formData.append("removeBackground", "1");
+        }
+        await updateResume(resumeData._id, formData);
+      }
+      setSaveStatus("Saved");
+      setTimeout(() => setSaveStatus(""), 2000);
+    } catch (err) {
+      const message = err.response?.data?.message || err.message || "Failed to save";
+      setSaveStatus(message);
+    }
+  };
+  const handleShare = () => {
+    if (!resumeData._id) return;
+    const frontendUrl = window.location.origin;
+    const resumeUrl = `${frontendUrl}/view/${resumeData._id}`;
+    if (navigator.share) {
+      navigator.share({ url: resumeUrl, text: "My Resume" });
+    } else {
+      alert("Share not supported on this browser.");
+    }
+  };
   const downloadResume = ()=> {
     window.print()
   }
@@ -240,11 +292,12 @@ const ResumeBuilder = () => {
                 )}
               </div>
               <button
+                onClick={saveResume}
                 className="bg-gradient-to-br from-green-100 to-green-200
               ring-green-300 text-green-600 ring hover:ring-green-400 transition-all
               rounded-md px-6 py-2 mt-6 text-sm"
               >
-                Save Changes
+                {saveStatus || "Save Changes"}
               </button>
             </div>
           </div>

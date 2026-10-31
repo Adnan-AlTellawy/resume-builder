@@ -14,12 +14,28 @@ const MinimalImageTemplate = ({ data, accentColor }) => {
         <div className="max-w-5xl mx-auto bg-white text-zinc-800">
             <div className="grid grid-cols-3">
 
-                <div className="col-span-1  py-10">
-                    {/* Image */}
-                    data.personal_info?.image && typeof data.personal_info.image === 'string' ? (
-                        <div className="mb-6">
-                            <img src={data.personal_info.image} alt="Profile" className="w-32 h-32 object-cover rounded-full mx-auto" style={{ background: accentColor+'70' }} />
-                        </div>)
+                <div className="col-span-1 py-10 flex flex-col items-center justify-center">
+                    {/* Image / Frame Placeholder */}
+                    <div className="mb-6">
+                        {data.personal_info?.image ? (
+                            <img 
+                                src={
+                                    typeof data.personal_info.image === "string"
+                                        ? data.personal_info.image
+                                        : URL.createObjectURL(data.personal_info.image)
+                                } 
+                                alt="Profile" 
+                                className="w-32 h-32 object-cover rounded-full mx-auto shadow-md" 
+                            />
+                        ) : (
+                            <div 
+                                className="w-32 h-32 rounded-full mx-auto flex items-center justify-center text-zinc-400 text-sm border-2 border-dashed border-zinc-300"
+                                style={{ background: accentColor ? accentColor + '20' : '#f4f4f5' }}
+                            >
+                                Profile
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Name + Title */}
@@ -34,8 +50,6 @@ const MinimalImageTemplate = ({ data, accentColor }) => {
 
                 {/* Left Sidebar */}
                 <aside className="col-span-1 border-r border-zinc-400 p-6 pt-0">
-
-
                     {/* Contact */}
                     <section className="mb-8">
                         <h2 className="text-sm font-semibold tracking-widest text-zinc-600 mb-3">
@@ -100,7 +114,6 @@ const MinimalImageTemplate = ({ data, accentColor }) => {
 
                 {/* Right Content */}
                 <main className="col-span-2 p-8 pt-0">
-
                     {/* Summary */}
                     {data.professional_summary && (
                         <section className="mb-8">
@@ -161,7 +174,7 @@ const MinimalImageTemplate = ({ data, accentColor }) => {
                                             {project.type}
                                         </p>
                                         {project.description && (
-                                            <ul className="list-disc list-inside text-sm text-zinc-700  space-y-1">
+                                            <ul className="list-disc list-inside text-sm text-zinc-700 space-y-1">
                                                 {project.description.split("\n").map((line, i) => (
                                                     <li key={i}>{line}</li>
                                                 ))}
@@ -176,7 +189,6 @@ const MinimalImageTemplate = ({ data, accentColor }) => {
             </div>
         </div>
     );
-}
-
+};
 
 export default MinimalImageTemplate;
